@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageQueues", "MessageQueues\MessageQueues.csproj", "{E27DD792-3249-48A7-AAE1-5D4A88F05C82}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MQListener", "MQListener\MQListener.csproj", "{59BFBCF9-49EB-41AE-B4ED-CF0542640DE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E27DD792-3249-48A7-AAE1-5D4A88F05C82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E27DD792-3249-48A7-AAE1-5D4A88F05C82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E27DD792-3249-48A7-AAE1-5D4A88F05C82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59BFBCF9-49EB-41AE-B4ED-CF0542640DE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59BFBCF9-49EB-41AE-B4ED-CF0542640DE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59BFBCF9-49EB-41AE-B4ED-CF0542640DE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59BFBCF9-49EB-41AE-B4ED-CF0542640DE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

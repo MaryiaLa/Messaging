@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E27DD792-3249-48A7-AAE1-5D4A88F05C82}</ProjectGuid>
+    <ProjectGuid>{59BFBCF9-49EB-41AE-B4ED-CF0542640DE5}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>MessageQueues</RootNamespace>
-    <AssemblyName>MessageQueues</AssemblyName>
+    <RootNamespace>MQListener</RootNamespace>
+    <AssemblyName>MQListener</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -35,7 +35,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
