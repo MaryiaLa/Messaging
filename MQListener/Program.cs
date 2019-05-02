@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Messaging;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MQListener
@@ -14,22 +16,32 @@ namespace MQListener
 	{
 		private static string directoryPath;
 		private static string queueName;
+		static ManualResetEvent resetEvent = new ManualResetEvent(false);
 		static void Main(string[] args)
 		{
 			Console.Clear();
+			try
+			{
+				directoryPath = ConfigurationSettings.AppSettings["directoryPath"];
 
-			Console.WriteLine("Enter directory path:");
-			directoryPath = Console.ReadLine();
+				if (!Directory.Exists(directoryPath))
+				{
+					throw new Exception("Directory does not exists");
+				}
 
-			Console.WriteLine("Enter queue name:");
-			queueName = Console.ReadLine();
+				queueName = ConfigurationSettings.AppSettings["queueName"];
 
-			ReceiveMessage(directoryPath, queueName);
+				ReceiveMessage(queueName);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+			}
 
 			Console.ReadLine();
 		}
 
-		private static void ReceiveMessage(string filePath, string nameOfQueue)
+		private static void ReceiveMessage(string nameOfQueue)
 		{
 			MessageQueue queue;
 
@@ -46,15 +58,42 @@ namespace MQListener
 
 			using (queue)
 			{
-				var message = queue.Receive();
-				message.Formatter = new BinaryMessageFormatter();
-				var reader = new StreamReader(message.BodyStream, Encoding.Unicode);
-				var msgBody = reader.ReadToEnd();
+				queue.ReceiveCompleted += OnReceiveCompleted;
 
-				/*IFormatter formatter = new BinaryFormatter();
-				stream.Seek(0, SeekOrigin.Begin);
-				object o = formatter.Deserialize(stream);*/
+				while (true)
+				{
+					queue.BeginReceive();
+					resetEvent.WaitOne();
+				}
 			}
+		}
+
+		private static void OnReceiveCompleted(Object source, ReceiveCompletedEventArgs asyncResult)
+		{
+			MessageQueue messageQueue = (MessageQueue)source;
+			Message message = messageQueue.EndReceive(asyncResult.AsyncResult);
+
+			if (message != null)
+			{
+				message.Formatter = new BinaryMessageFormatter();
+				var fileName = message.Label;
+				byte[] byteArray = message.Body as byte[];
+				string fullFileName = directoryPath + @"\" + fileName;
+
+				if (byteArray != null)
+				{
+					using (var fs = new FileStream(fullFileName, FileMode.Create, FileAccess.Write))
+					{
+						fs.Write(byteArray, 0, byteArray.Length);
+					}
+				}
+
+				Console.WriteLine("File {0} received.", fullFileName);
+			}
+
+			resetEvent.Set();
+
+			messageQueue.BeginReceive();
 		}
 	}
 }

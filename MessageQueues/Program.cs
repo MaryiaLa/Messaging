@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,23 +21,42 @@ namespace MessageQueues
 		{
 			Console.Clear();
 
-			Console.WriteLine("Enter directory path:");
-			directoryPath = Console.ReadLine();
+			try
+			{
+				directoryPath = ConfigurationSettings.AppSettings["directoryPath"];
 
-			Console.WriteLine("Enter queue name:");
-			queueName = Console.ReadLine();
+				if (!Directory.Exists(directoryPath))
+				{
+					throw new Exception("Directory does not exists");
+				}
 
-			MonitorDirectory(directoryPath);
+				queueName = ConfigurationSettings.AppSettings["queueName"];
+
+				MonitorDirectory(directoryPath);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+			}
 
 			Console.ReadLine();
 		}
 
 		private static void MonitorDirectory(string path)
 		{
+			string[] existingFiles = Directory.GetFiles(path);
+
+			if (existingFiles.Length > 0)
+			{
+				foreach (var file in existingFiles)
+				{
+					AddFileToQueue(file, queueName, Path.GetFileName(file));
+				}
+			}
+
 			FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
 			fileSystemWatcher.Path = path;
 			fileSystemWatcher.Created += FileSystemWatcher_Created;
-			//fileSystemWatcher.Changed += FileSystemWatcher_Changed;
 
 			fileSystemWatcher.EnableRaisingEvents = true;
 
@@ -46,10 +66,10 @@ namespace MessageQueues
 		{
 			string filePath = directoryPath + @"\"+ e.Name;
 			Console.WriteLine("File {0} added.", filePath);
-			AddFileToQueue(filePath, queueName);
+			AddFileToQueue(filePath, queueName, e.Name);
 		}
 
-		private static void AddFileToQueue(string filePath, string nameOfQueue)
+		private static void AddFileToQueue(string filePath, string nameOfQueue, string fileName)
 		{
 			MessageQueue queue;
 
@@ -62,28 +82,32 @@ namespace MessageQueues
 				queue = MessageQueue.Create(nameOfQueue);
 			}
 
-			//Image myImage = Image.FromFile(filePath);
-
-			/*MemoryStream stream = new MemoryStream();
-			IFormatter formatter = new BinaryFormatter();
-			formatter.Serialize(stream, file);*/
-
 			using (queue)
-			using (Stream fileStream = new FileStream(filePath, FileMode.Open))
+			using (FileStream fileStream = File.OpenRead(filePath))
 			{
+				byte[] fileBytes = new byte[fileStream.Length];
+				fileStream.Read(fileBytes, 0, fileBytes.Length);
+
 				Message message = new Message()
 				{
-					BodyStream = fileStream,
-					Label = Path.GetFileName(filePath),
+					Body = fileBytes,
 					Priority = MessagePriority.Normal,
-					Formatter = new BinaryMessageFormatter()
+					Formatter = new BinaryMessageFormatter(),
+					Label = fileName
 				};
-			  //Message message = new Message("file");
-
 
 				queue.Send(message);
-			}
+				Console.WriteLine("File {0} sent.", filePath);
 
+				fileStream.Close();
+			}
+			DeleteFile(filePath);
+		}
+
+		private static void DeleteFile(string filePath)
+		{
+			File.Delete(filePath);
+			Console.WriteLine("File {0} dropped.", filePath);
 		}
 	}
 }
